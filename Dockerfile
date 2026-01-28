@@ -2,9 +2,10 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 RUN corepack enable
-COPY package.json yarn.lock .pnp.cjs .pnp.loader.mjs ./
-RUN yarn install --immutable
+
+# Copy the whole repo first so Yarn can generate a consistent PnP map + cache.
 COPY . .
+RUN yarn install --immutable
 RUN yarn build
 
 # Serve stage (Yarn PnP; no node_modules)
@@ -13,10 +14,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN corepack enable
 
-COPY package.json yarn.lock .pnp.cjs .pnp.loader.mjs ./
-RUN yarn install --immutable
-
-COPY --from=build /app/build ./build
+# Copy the built app + Yarn PnP artifacts from the build stage.
+COPY --from=build /app /app
 
 EXPOSE 3000
 CMD ["node", "--require", "./.pnp.cjs", "build/index.js"]
