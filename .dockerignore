@@ -1,0 +1,12 @@
+.git
+.github
+docs
+
+.DS_Store
+Thumbs.db
+
+.svelte-kit
+build
+.output
+node_modules
+

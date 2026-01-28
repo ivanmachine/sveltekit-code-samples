@@ -1,0 +1,23 @@
+name: 🦖 Deploy sveltekit-code-samples (production)
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  play-deploy:
+    name: 🍜 Deploy sveltekit.devside.no to do_server VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull latest container, and restart it
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.DO_VPS_IP }} # VPS IP address from GitHub Secrets
+          username: "root" # VPS username from GitHub Secrets
+          password: ${{ secrets.DO_VPS_PASSWORD }}
+          port: 22 # SSH port (default is 22)
+          script: |
+            docker pull ivanmachine/sveltekit.devside.no:latest
+            docker stop sveltekit.devside.no || true  # stop existing container if running
+            docker rm sveltekit.devside.no || true    # remove existing container if exists
+            docker run -d --restart unless-stopped --name sveltekit.devside.no -p 4180:3000 ivanmachine/sveltekit.devside.no:latest
